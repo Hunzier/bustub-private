@@ -24,7 +24,7 @@ The following instructions are adapted from the Github documentation on [duplica
 3. Next, [mirror](https://git-scm.com/docs/git-push#Documentation/git-push.txt---mirror) the public BusTub repository to your own private BusTub repository. Suppose your GitHub name is `student` and your repository name is `bustub-private`. The procedure for mirroring the repository is then:
    ```
    $ cd bustub-public
-   
+
    # If you pull / push over HTTPS
    $ git push https://github.com/student/bustub-private.git master
 
@@ -94,7 +94,7 @@ $ make
 If you want to compile the system in debug mode, pass in the following flag to cmake:
 Debug mode:
 
-```
+```P
 $ cmake -DCMAKE_BUILD_TYPE=Debug ..
 $ make -j`nproc`
 ```
