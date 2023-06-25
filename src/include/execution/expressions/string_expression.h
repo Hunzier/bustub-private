@@ -35,6 +35,7 @@ enum class StringExpressionType { Lower, Upper };
 /**
  * StringExpression represents two expressions being computed.
  */
+
 class StringExpression : public AbstractExpression {
  public:
   StringExpression(AbstractExpressionRef arg, StringExpressionType expr_type)
@@ -46,7 +47,23 @@ class StringExpression : public AbstractExpression {
 
   auto Compute(const std::string &val) const -> std::string {
     // TODO(student): implement upper / lower.
-    return {};
+    std::string ans;
+    if (expr_type_ == StringExpressionType::Lower) {
+      for (auto v : val) {
+        if (v >= 'A' && v <= 'Z') {
+          v += 'a' - 'A';
+        }
+        ans.push_back(v);
+      }
+    } else {
+      for (auto v : val) {
+        if (v >= 'a' && v <= 'z') {
+          v += 'A' - 'a';
+        }
+        ans.push_back(v);
+      }
+    }
+    return ans;
   }
 
   auto Evaluate(const Tuple *tuple, const Schema &schema) const -> Value override {

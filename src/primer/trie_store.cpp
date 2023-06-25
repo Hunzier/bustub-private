@@ -18,7 +18,7 @@ auto TrieStore::Get(std::string_view key) -> std::optional<ValueGuard<T>> {
   // (3) If the value is found, return a ValueGuard object that holds a reference to the value and the
   //     root. Otherwise, return std::nullopt.
 
-  if(value != nullptr) {
+  if (value != nullptr) {
     return ValueGuard<T>(root, *value);
   }
 
@@ -38,15 +38,14 @@ void TrieStore::Put(std::string_view key, T value) {
   auto root = root_;
   root_lock_.unlock();
 
-
-  auto NewRoot = root.Put<T>(key, std::move(value));
+  auto new_root = root.Put<T>(key, std::move(value));
 
   root_lock_.lock();
-  root_ = NewRoot;
+  root_ = new_root;
   root_lock_.unlock();
 
   write_lock_.unlock();
-  //throw NotImplementedException("TrieStore::Put is not implemented.");
+  // throw NotImplementedException("TrieStore::Put is not implemented.");
 }
 
 void TrieStore::Remove(std::string_view key) {
@@ -59,11 +58,10 @@ void TrieStore::Remove(std::string_view key) {
   auto root = root_;
   root_lock_.unlock();
 
-
-  auto NewRoot = root.Remove(key);
+  auto new_root = root.Remove(key);
 
   root_lock_.lock();
-  root_ = NewRoot;
+  root_ = new_root;
   root_lock_.unlock();
 
   write_lock_.unlock();
