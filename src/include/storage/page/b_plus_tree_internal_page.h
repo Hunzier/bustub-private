@@ -59,12 +59,14 @@ class BPlusTreeInternalPage : public BPlusTreePage {
    * @param key The new value for key
    */
   void SetKeyAt(int index, const KeyType &key);
+  auto SetValueAt(int index, const ValueType &key);
 
   /**
    *
    * @param value the value to search for
    */
   auto ValueIndex(const ValueType &value) const -> int;
+  auto KeyIndex(const KeyType &key, const KeyComparator &comparator) const -> int;
 
   /**
    *
@@ -72,6 +74,9 @@ class BPlusTreeInternalPage : public BPlusTreePage {
    * @return the value at the index
    */
   auto ValueAt(int index) const -> ValueType;
+  auto Insert(const KeyType &key, const ValueType &value, const KeyComparator &comparator) -> bool;
+  auto Remove(const KeyType &key, const KeyComparator &comparator) -> bool;
+  auto Remove(int index) -> bool;
 
   /**
    * @brief For test only, return a string representing all keys in

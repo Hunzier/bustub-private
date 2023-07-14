@@ -2,22 +2,14 @@
 #include "buffer/buffer_pool_manager.h"
 
 namespace bustub {
-BasicPageGuard::BasicPageGuard(BasicPageGuard &&that) noexcept {
-  if (this->bpm_ != nullptr) {
-    Drop();
-  }
-
-  this->bpm_ = that.bpm_;
-  this->page_ = that.page_;
-  this->is_dirty_ = that.is_dirty_;
-
+BasicPageGuard::BasicPageGuard(BasicPageGuard &&that) noexcept : bpm_(that.bpm_), page_(that.page_) {
   that.bpm_ = nullptr;
   that.page_ = nullptr;
-  that.is_dirty_ = false;
 }
 
 void BasicPageGuard::Drop() {
   if (bpm_ != nullptr && page_ != nullptr) {
+    page_->WUnlatch();  // 释放写入锁
     bpm_->UnpinPage(page_->GetPageId(), is_dirty_);
     bpm_ = nullptr;
     page_ = nullptr;
@@ -48,10 +40,7 @@ auto BasicPageGuard::operator=(BasicPageGuard &&that) noexcept -> BasicPageGuard
 
 BasicPageGuard::~BasicPageGuard() { Drop(); }
 
-ReadPageGuard::ReadPageGuard(ReadPageGuard &&that) noexcept {
-  Drop();
-  this->guard_ = std::move(that.guard_);
-}
+ReadPageGuard::ReadPageGuard(ReadPageGuard &&that) noexcept : guard_(std::move(that.guard_)) {}
 
 auto ReadPageGuard::operator=(ReadPageGuard &&that) noexcept -> ReadPageGuard & {
   // 检查自赋值情况
@@ -63,21 +52,11 @@ auto ReadPageGuard::operator=(ReadPageGuard &&that) noexcept -> ReadPageGuard & 
   return *this;
 }
 
-void ReadPageGuard::Drop() {
-  if (guard_.page_ == nullptr) {
-    return;
-  }
-
-  guard_.page_->RUnlatch();
-  guard_.Drop();
-}
+void ReadPageGuard::Drop() { guard_.Drop(); }
 
 ReadPageGuard::~ReadPageGuard() { Drop(); }
 
-WritePageGuard::WritePageGuard(WritePageGuard &&that) noexcept {
-  Drop();
-  this->guard_ = std::move(that.guard_);
-}
+WritePageGuard::WritePageGuard(WritePageGuard &&that) noexcept : guard_(std::move(that.guard_)) {}
 
 auto WritePageGuard::operator=(WritePageGuard &&that) noexcept -> WritePageGuard & {
   // 检查自赋值情况
@@ -89,14 +68,7 @@ auto WritePageGuard::operator=(WritePageGuard &&that) noexcept -> WritePageGuard
   return *this;
 }
 
-void WritePageGuard::Drop() {
-  if (guard_.page_ == nullptr) {
-    return;
-  }
-
-  guard_.page_->WUnlatch();
-  guard_.Drop();
-}
+void WritePageGuard::Drop() { guard_.Drop(); }
 
 WritePageGuard::~WritePageGuard() { Drop(); }
 

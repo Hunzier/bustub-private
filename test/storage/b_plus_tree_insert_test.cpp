@@ -12,6 +12,7 @@
 
 #include <algorithm>
 #include <cstdio>
+#include <random>
 
 #include "buffer/buffer_pool_manager.h"
 #include "gtest/gtest.h"
@@ -23,7 +24,7 @@ namespace bustub {
 
 using bustub::DiskManagerUnlimitedMemory;
 
-TEST(BPlusTreeTests, DISABLED_InsertTest1) {
+TEST(BPlusTreeTests, InsertTest1) {
   // create KeyComparator and index schema
   auto key_schema = ParseCreateStatement("a bigint");
   GenericComparator<8> comparator(key_schema.get());
@@ -62,7 +63,7 @@ TEST(BPlusTreeTests, DISABLED_InsertTest1) {
   delete bpm;
 }
 
-TEST(BPlusTreeTests, DISABLED_InsertTest2) {
+TEST(BPlusTreeTests, InsertTest2) {
   // create KeyComparator and index schema
   auto key_schema = ParseCreateStatement("a bigint");
   GenericComparator<8> comparator(key_schema.get());
@@ -78,13 +79,26 @@ TEST(BPlusTreeTests, DISABLED_InsertTest2) {
   RID rid;
   // create transaction
   auto *transaction = new Transaction(0);
+  std::vector<int64_t> keys;
+  for (int i = 1; i <= 10000; i++) {
+    keys.push_back(i);
+  }
 
-  std::vector<int64_t> keys = {1, 2, 3, 4, 5};
+  std::shuffle(keys.begin(), keys.end(), std::mt19937(std::random_device()()));
+
   for (auto key : keys) {
     int64_t value = key & 0xFFFFFFFF;
     rid.Set(static_cast<int32_t>(key >> 32), value);
     index_key.SetFromInteger(key);
-    tree.Insert(index_key, rid, transaction);
+    auto chk = tree.Insert(index_key, rid, transaction);
+  }
+
+  for (auto key : keys) {
+    int64_t value = key & 0xFFFFFFFF;
+    rid.Set(static_cast<int32_t>(key >> 32), value);
+    index_key.SetFromInteger(key);
+    auto chk = tree.Insert(index_key, rid, transaction);
+    EXPECT_EQ(chk, false);
   }
 
   std::vector<RID> rids;
@@ -93,7 +107,6 @@ TEST(BPlusTreeTests, DISABLED_InsertTest2) {
     index_key.SetFromInteger(key);
     tree.GetValue(index_key, &rids);
     EXPECT_EQ(rids.size(), 1);
-
     int64_t value = key & 0xFFFFFFFF;
     EXPECT_EQ(rids[0].GetSlotNum(), value);
   }
@@ -120,7 +133,7 @@ TEST(BPlusTreeTests, DISABLED_InsertTest2) {
   delete bpm;
 }
 
-TEST(BPlusTreeTests, DISABLED_InsertTest3) {
+TEST(BPlusTreeTests, InsertTest3) {
   // create KeyComparator and index schema
   auto key_schema = ParseCreateStatement("a bigint");
   GenericComparator<8> comparator(key_schema.get());
@@ -139,7 +152,12 @@ TEST(BPlusTreeTests, DISABLED_InsertTest3) {
   // create transaction
   auto *transaction = new Transaction(0);
 
-  std::vector<int64_t> keys = {5, 4, 3, 2, 1};
+  std::vector<int64_t> keys;
+    for (int i = 1; i <= 10000; i++) {
+    keys.push_back(i);
+  }
+
+  std::shuffle(keys.begin(), keys.end(), std::mt19937(std::random_device()()));
   for (auto key : keys) {
     int64_t value = key & 0xFFFFFFFF;
     rid.Set(static_cast<int32_t>(key >> 32), value);

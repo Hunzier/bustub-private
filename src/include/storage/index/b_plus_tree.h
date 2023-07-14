@@ -17,6 +17,7 @@
 #include <queue>
 #include <shared_mutex>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "common/config.h"
@@ -54,6 +55,12 @@ class Context {
   std::deque<ReadPageGuard> read_set_;
 
   auto IsRootPage(page_id_t page_id) -> bool { return page_id == root_page_id_; }
+  auto Clear() {
+    header_page_ = std::nullopt;
+    root_page_id_ = INVALID_PAGE_ID;
+    write_set_.clear();
+    read_set_.clear();
+  }
 };
 
 #define BPLUSTREE_TYPE BPlusTree<KeyType, ValueType, KeyComparator>
@@ -72,10 +79,18 @@ class BPlusTree {
   // Returns true if this B+ tree has no keys and values.
   auto IsEmpty() const -> bool;
 
+  auto FindLeafRead(const KeyType &key, Context *ctx) -> std::optional<std::pair<page_id_t, int>>;
+  auto FindLeafWrite(const KeyType &key, Context *ctx) -> std::optional<int>;
+
   // Insert a key-value pair into this B+ tree.
+  auto DfsInsert(page_id_t &root_page_id, const KeyType &key, const ValueType &value, bool &splited,
+                 page_id_t &new_page_id, KeyType &pre_key, Transaction *txn) -> bool;
   auto Insert(const KeyType &key, const ValueType &value, Transaction *txn = nullptr) -> bool;
 
   // Remove a key and its value from this B+ tree.
+  void DfsRemove(page_id_t &root_page_id, const page_id_t &left_son_page_id, const page_id_t &right_son_page_id,
+                 const KeyType &key, std::vector<std::pair<KeyType, page_id_t>> &delete_node,
+                 std::vector<std::pair<KeyType, page_id_t>> &add_node, Transaction *txn);
   void Remove(const KeyType &key, Transaction *txn);
 
   // Return the value associated with a given key

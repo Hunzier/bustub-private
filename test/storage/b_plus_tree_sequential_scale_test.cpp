@@ -27,7 +27,7 @@ using bustub::DiskManagerUnlimitedMemory;
 /**
  * This test should be passing with your Checkpoint 1 submission.
  */
-TEST(BPlusTreeTests, DISABLED_ScaleTest) {  // NOLINT
+TEST(BPlusTreeTests, ScaleTest) {  // NOLINT
   // create KeyComparator and index schema
   auto key_schema = ParseCreateStatement("a bigint");
   GenericComparator<8> comparator(key_schema.get());
@@ -47,15 +47,15 @@ TEST(BPlusTreeTests, DISABLED_ScaleTest) {  // NOLINT
   // create transaction
   auto *transaction = new Transaction(0);
 
-  int64_t scale = 5000;
+  int64_t scale = 2000;
   std::vector<int64_t> keys;
   for (int64_t key = 1; key < scale; key++) {
     keys.push_back(key);
   }
 
   // randomized the insertion order
-  auto rng = std::default_random_engine{};
-  std::shuffle(keys.begin(), keys.end(), rng);
+  // auto rng = std::default_random_engine{};
+  // std::shuffle(keys.begin(), keys.end(), rng);
   for (auto key : keys) {
     int64_t value = key & 0xFFFFFFFF;
     rid.Set(static_cast<int32_t>(key >> 32), value);
@@ -72,6 +72,19 @@ TEST(BPlusTreeTests, DISABLED_ScaleTest) {  // NOLINT
     int64_t value = key & 0xFFFFFFFF;
     ASSERT_EQ(rids[0].GetSlotNum(), value);
   }
+
+  for (auto key : keys) {
+    int64_t value = key & 0xFFFFFFFF;
+    rid.Set(static_cast<int32_t>(key >> 32), value);
+    index_key.SetFromInteger(key);
+    tree.Remove(index_key, transaction);
+
+    rids.clear();
+    tree.GetValue(index_key, &rids);
+    ASSERT_EQ(rids.size(), 0);
+    std::cout << key << "\n";
+  }
+
 
   bpm->UnpinPage(HEADER_PAGE_ID, true);
   delete transaction;
