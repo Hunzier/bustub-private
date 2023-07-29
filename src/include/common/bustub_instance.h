@@ -61,7 +61,6 @@ class ResultWriter {
   virtual void EndRow() = 0;
   virtual void BeginTable(bool simplified_output) = 0;
   virtual void EndTable() = 0;
-
   bool simplified_output_{false};
 };
 
@@ -253,16 +252,15 @@ class BustubInstance {
   // TODO(chi): change to unique_ptr. Currently they're directly referenced by recovery test, so
   // we cannot do anything on them until someone decides to refactor the recovery test.
 
-  DiskManager *disk_manager_;
-  BufferPoolManager *buffer_pool_manager_;
-  LockManager *lock_manager_;
-  TransactionManager *txn_manager_;
-  LogManager *log_manager_;
-  CheckpointManager *checkpoint_manager_;
-  Catalog *catalog_;
-  ExecutionEngine *execution_engine_;
-  std::shared_mutex catalog_lock_;
-
+  DiskManager *disk_manager_;               // 磁盘管理  
+  BufferPoolManager *buffer_pool_manager_;  // 缓冲池管理  
+  LockManager *lock_manager_;               // 锁管理  
+  TransactionManager *txn_manager_;         // 事务管理  
+  LogManager *log_manager_;                 // 日志管理  
+  CheckpointManager *checkpoint_manager_;   // 检查点管理器  
+  Catalog *catalog_;                        // 处理表的创建、表的查找、索引的创建和索引的查找  
+  ExecutionEngine *execution_engine_;       // 执行引擎  
+  std::shared_mutex catalog_lock_;          // catalog的锁
   auto GetSessionVariable(const std::string &key) -> std::string {
     if (session_variables_.find(key) != session_variables_.end()) {
       return session_variables_[key];

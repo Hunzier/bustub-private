@@ -19,9 +19,10 @@
 #include "binder/table_ref/bound_join_ref.h"
 #include "execution/expressions/abstract_expression.h"
 #include "execution/plans/abstract_plan.h"
+#include "common/util/hash_util.h"
+#include "container/hash/hash_function.h"
 
 namespace bustub {
-
 /**
  * Hash join performs a JOIN operation with a hash table.
  */
@@ -81,3 +82,5 @@ class HashJoinPlanNode : public AbstractPlanNode {
 };
 
 }  // namespace bustub
+
+

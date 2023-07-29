@@ -227,6 +227,7 @@ auto BustubInstance::ExecuteSqlTxn(const std::string &sql, ResultWriter &writer,
 
   std::shared_lock<std::shared_mutex> l(catalog_lock_);
   bustub::Binder binder(*catalog_);
+  // 尝试将查询语句解析为一系列 SQL 语句，并将解析后的语句存储在 `statement_nodes_` 变量中
   binder.ParseAndSave(sql);
   l.unlock();
 

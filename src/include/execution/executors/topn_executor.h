@@ -23,7 +23,6 @@
 #include "storage/table/tuple.h"
 
 namespace bustub {
-
 /**
  * The TopNExecutor executor executes a topn.
  */
@@ -58,10 +57,17 @@ class TopNExecutor : public AbstractExecutor {
   /** @return The size of top_entries_ container, which will be called on each child_executor->Next(). */
   auto GetNumInHeap() -> size_t;
 
+  auto Cmp(int u, int v) -> bool;
+  void Swap(int u, int v);
+  void Down(int u);
+  void Up(int u);
+
  private:
   /** The TopN plan node to be executed */
   const TopNPlanNode *plan_;
   /** The child executor from which tuples are obtained */
   std::unique_ptr<AbstractExecutor> child_executor_;
+  std::vector<Tuple> heap_;
+  std::vector<Tuple> tuples_;
 };
 }  // namespace bustub

@@ -25,15 +25,16 @@ auto GetWidthOfUtf8(const void *beg, const void *end, size_t *width) -> int {
 
 // NOLINTNEXTLINE
 auto main(int argc, char **argv) -> int {
-  ft_set_u8strwid_func(&GetWidthOfUtf8);
+  ft_set_u8strwid_func(&GetWidthOfUtf8); // 设置编码长度
 
-  auto bustub = std::make_unique<bustub::BustubInstance>("test.db");
+  auto bustub = std::make_unique<bustub::BustubInstance>("test.db"); // 将必要资源生成了
 
   auto default_prompt = "bustub> ";
   auto emoji_prompt = "\U0001f6c1> ";  // the bathtub emoji
   bool use_emoji_prompt = false;
   bool disable_tty = false;
 
+  // 参数
   for (int i = 1; i < argc; i++) {
     if (strcmp(argv[i], "--emoji-prompt") == 0) {
       use_emoji_prompt = true;
@@ -45,8 +46,10 @@ auto main(int argc, char **argv) -> int {
     }
   }
 
+  // 生成模拟表
   bustub->GenerateMockTable();
 
+  // 生成测试表
   if (bustub->buffer_pool_manager_ != nullptr) {
     bustub->GenerateTestTable();
   }

@@ -27,7 +27,6 @@ auto Optimizer::OptimizeOrderByAsIndexScan(const AbstractPlanNodeRef &plan) -> A
     children.emplace_back(OptimizeOrderByAsIndexScan(child));
   }
   auto optimized_plan = plan->CloneWithChildren(std::move(children));
-
   if (optimized_plan->GetType() == PlanType::Sort) {
     const auto &sort_plan = dynamic_cast<const SortPlanNode &>(*optimized_plan);
     const auto &order_bys = sort_plan.GetOrderBy();

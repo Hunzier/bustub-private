@@ -42,6 +42,19 @@ class ExecutionEngine {
 
   DISALLOW_COPY_AND_MOVE(ExecutionEngine);
 
+  /*
+  这段代码实现了执行查询计划的功能。执行过程如下：
+
+  首先，通过传入的查询计划 plan 和事务上下文 txn，使用 ExecutorFactory::CreateExecutor 方法构造一个与抽象计划节点相对应的执行器（executor）。
+  然后，对执行器进行初始化，调用 executor->Init() 方法进行初始化操作。
+  接下来，通过调用 PollExecutor 方法，执行查询计划并逐步获取结果。这个方法会不断从执行器中获取下一个结果元组，并将其添加到结果集 result_set 中，直到没有更多结果为止。
+  在执行的过程中，可能会抛出 ExecutionException 异常。如果出现异常，将 executor_succeeded 标志设置为 false，并清空结果集（如果 result_set 非空）。
+  最后，执行一些检查操作，调用 PerformChecks 方法来执行一些额外的检查。
+  该函数返回一个布尔值，表示查询计划的执行是否成功。如果执行成功，则返回 true，否则返回 false。
+
+  总体而言，该函数通过调用相应的执行器执行查询计划，并将执行过程中产生的结果逐步添加到结果集中。同时，还处理了可能出现的异常情况，并提供了执行过程的错误处理和检查机制。
+  */
+
   /**
    * Execute a query plan.
    * @param plan The query plan to execute

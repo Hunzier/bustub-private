@@ -74,10 +74,44 @@ class SimpleAggregationHashTable {
     for (uint32_t i = 0; i < agg_exprs_.size(); i++) {
       switch (agg_types_[i]) {
         case AggregationType::CountStarAggregate:
+          // input 非空且 result 是整型
+          result->aggregates_[i] = result->aggregates_[i].Add(Value(INTEGER, 1));
+          break;
         case AggregationType::CountAggregate:
+          if (!input.aggregates_[i].IsNull() && result->aggregates_[i].IsNull()) {
+            result->aggregates_[i] = Value(INTEGER, 0);
+          }
+          // input 非空且 result 是整型
+          if (!input.aggregates_[i].IsNull() && result->aggregates_[i].CheckInteger()) {
+            result->aggregates_[i] = result->aggregates_[i].Add(Value(INTEGER, 1));
+          }
+          break;
         case AggregationType::SumAggregate:
+          if (!input.aggregates_[i].IsNull() && result->aggregates_[i].IsNull()) {
+            result->aggregates_[i] = Value(INTEGER, 0);
+          }
+          // input 非空且 result 是整型
+          if (!input.aggregates_[i].IsNull() && result->aggregates_[i].CheckInteger()) {
+            result->aggregates_[i] = result->aggregates_[i].Add(input.aggregates_[i]);
+          }
+          break;
         case AggregationType::MinAggregate:
+          if (!input.aggregates_[i].IsNull() && result->aggregates_[i].IsNull()) {
+            result->aggregates_[i] = Value(INTEGER, 10000000);
+          }
+          // input 非空且 result 是整型
+          if (!input.aggregates_[i].IsNull() && result->aggregates_[i].CheckInteger()) {
+            result->aggregates_[i] = result->aggregates_[i].Min(input.aggregates_[i]);
+          }
+          break;
         case AggregationType::MaxAggregate:
+          if (!input.aggregates_[i].IsNull() && result->aggregates_[i].IsNull()) {
+            result->aggregates_[i] = Value(INTEGER, -10000000);
+          }
+          // input 非空且 result 是整型
+          if (!input.aggregates_[i].IsNull() && result->aggregates_[i].CheckInteger()) {
+            result->aggregates_[i] = result->aggregates_[i].Max(input.aggregates_[i]);
+          }
           break;
       }
     }
@@ -165,7 +199,7 @@ class AggregationExecutor : public AbstractExecutor {
   /**
    * Yield the next tuple from the insert.
    * @param[out] tuple The next tuple produced by the aggregation
-   * @param[out] rid The next tuple RID produced by the aggregation
+   * @param[out] rid The next tuple ID produced by the aggregation
    * @return `true` if a tuple was produced, `false` if there are no more tuples
    */
   auto Next(Tuple *tuple, RID *rid) -> bool override;
@@ -203,9 +237,13 @@ class AggregationExecutor : public AbstractExecutor {
   std::unique_ptr<AbstractExecutor> child_executor_;
 
   /** Simple aggregation hash table */
-  // TODO(Student): Uncomment SimpleAggregationHashTable aht_;
+  // TODO(Student): Uncomment
+  SimpleAggregationHashTable aht_;
 
   /** Simple aggregation hash table iterator */
-  // TODO(Student): Uncomment SimpleAggregationHashTable::Iterator aht_iterator_;
+  // TODO(Student): Uncomment
+  SimpleAggregationHashTable::Iterator aht_iterator_;
+
+  bool first_check_{true};
 };
 }  // namespace bustub
