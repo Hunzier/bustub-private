@@ -121,7 +121,6 @@ auto HashJoinExecutor::Next(Tuple *tuple, RID *rid) -> bool {
       continue;
     }
 
-    std::cout << right_tuples_->size() << " " << right_pos_ << "\n";
     auto right_values = right_tuples_->at(right_pos_++);
     std::vector<Value> values;
     for (uint32_t i = 0; i < plan_->GetLeftPlan()->output_schema_->GetColumnCount(); i++) {

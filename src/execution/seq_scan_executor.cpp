@@ -16,11 +16,23 @@
 namespace bustub {
 
 SeqScanExecutor::SeqScanExecutor(ExecutorContext *exec_ctx, const SeqScanPlanNode *plan)
-    : AbstractExecutor(exec_ctx), plan_(plan) {}
+    : AbstractExecutor(exec_ctx), plan_(plan), table_info_(exec_ctx_->GetCatalog()->GetTable(plan_->table_oid_)) {}
 
 void SeqScanExecutor::Init() {
-  table_info_ = exec_ctx_->GetCatalog()->GetTable(plan_->GetTableOid());
-  table_iter_ = std::make_unique<TableIterator>(table_info_->table_->MakeIterator());
+  if (exec_ctx_->GetTransaction()->GetIsolationLevel() != IsolationLevel::READ_UNCOMMITTED) {
+    try {
+      bool is_locked = exec_ctx_->GetLockManager()->LockTable(
+          exec_ctx_->GetTransaction(), LockManager::LockMode::INTENTION_SHARED, table_info_->oid_);
+
+      // std::cout << "Start Fuck\n";
+      if (!is_locked) {
+        throw ExecutionException("SeqScan Executor Get Table Lock Failed");
+      }
+    } catch (TransactionAbortException e) {
+      throw ExecutionException("SeqScan Executor Get Table Lock Failed" + e.GetInfo());
+    }
+  }
+  table_iter_ = std::make_unique<TableIterator>(table_info_->table_->MakeEagerIterator());
 }
 
 auto SeqScanExecutor::Next(Tuple *tuple, RID *rid) -> bool {
@@ -33,9 +45,31 @@ auto SeqScanExecutor::Next(Tuple *tuple, RID *rid) -> bool {
       continue;
     }
     table_iter_->operator++();
+
+    // 锁行
+    if (exec_ctx_->GetTransaction()->GetIsolationLevel() != IsolationLevel::READ_UNCOMMITTED) {
+      try {
+        bool is_locked = exec_ctx_->GetLockManager()->LockRow(exec_ctx_->GetTransaction(),
+                                                              LockManager::LockMode::SHARED, table_info_->oid_, *rid);
+        if (!is_locked) {
+          throw ExecutionException("SeqScan Executor Get Table Lock Failed");
+        }
+      } catch (TransactionAbortException e) {
+        throw ExecutionException("SeqScan Executor Get Row Lock Failed");
+      }
+    }
     return true;
   }
 
+  if (exec_ctx_->GetTransaction()->GetIsolationLevel() == IsolationLevel::READ_COMMITTED) {
+    const auto locked_row_set = exec_ctx_->GetTransaction()->GetSharedRowLockSet()->at(table_info_->oid_);
+    table_oid_t oid = table_info_->oid_;
+    for (auto rid : locked_row_set) {
+      exec_ctx_->GetLockManager()->UnlockRow(exec_ctx_->GetTransaction(), oid, rid);
+    }
+    exec_ctx_->GetLockManager()->UnlockTable(exec_ctx_->GetTransaction(), table_info_->oid_);
+  }
+  // std::cout << "False\n";
   return false;
 }
 

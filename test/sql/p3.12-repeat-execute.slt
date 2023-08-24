@@ -14,14 +14,20 @@ insert into t1 values (0, '🥰'), (1, '🥰🥰');
 query rowsort +ensure:nlj_init_check
 select * from __mock_table_123, t1;
 ----
-1 0 🥰 
-1 1 🥰🥰 
-2 0 🥰 
-2 1 🥰🥰 
-3 0 🥰 
+1 0 🥰
+1 1 🥰🥰
+2 0 🥰
+2 1 🥰🥰
+3 0 🥰
 3 1 🥰🥰
 
 # SimpleAgg as the right child
+
+statement ok
+EXPLAIN select * from __mock_table_123, (select count(*) as cnt from t1);
+
+statement ok
+select count(*) as cnt from t1;
 
 query rowsort +ensure:nlj_init_check
 select * from __mock_table_123, (select count(*) as cnt from t1);
@@ -35,11 +41,11 @@ select * from __mock_table_123, (select count(*) as cnt from t1);
 query rowsort +ensure:nlj_init_check
 select * from __mock_table_123, (select distinct v2 from t1);
 ----
-1 🥰🥰 
-1 🥰 
-2 🥰🥰 
-2 🥰 
-3 🥰🥰 
+1 🥰🥰
+1 🥰
+2 🥰🥰
+2 🥰
+3 🥰🥰
 3 🥰
 
 # IndexScan as the right child
@@ -50,11 +56,11 @@ create index t1v1 on t1(v1);
 query rowsort +ensure:nlj_init_check
 select * from __mock_table_123, (select * from t1 order by v1);
 ----
-1 0 🥰 
-1 1 🥰🥰 
-2 0 🥰 
-2 1 🥰🥰 
-3 0 🥰 
+1 0 🥰
+1 1 🥰🥰
+2 0 🥰
+2 1 🥰🥰
+3 0 🥰
 3 1 🥰🥰
 
 # TODO: limit + repeat
